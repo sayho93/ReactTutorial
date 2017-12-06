@@ -1,26 +1,99 @@
 import React, {Component} from 'react';
 import { PostWrapper, Navigate, Post } from '../../components';
 import * as service from '../../services/company';
+// import * as phoneUtil from '../../utils/formatPhone';
+import { formatPhone } from '../../utils/formatPhone';
 
 class PostContainer extends Component {
-    componentDidMount(){
-        this.fetchCompanyInfo();
+    constructor(props) {
+        super();
+        // initializes component state
+        this.state = {
+            companyId: 1,
+            fetching: false, // tells whether the request is waiting for response or not
+            company: {
+                title: null,
+                phone: null,
+                regDate : null
+            },
+            commentList : []
+        };
     }
 
-    fetchCompanyInfo = async () => {
-        // const post = await service.getPost(1);
-        // console.log(post);
-        const companyList = await service.getCompanyList();
+    componentDidMount(){
+        this.fetchCompanyInfo(0);
+    }
+
+    fetchCompanyInfo = async (row) => {
+        this.setState({
+            fetching: true // requesting..
+        });
+
+        const info = await Promise.all([
+            service.getCompanyList(),
+            service.getComments(1)
+        ]);
+        const companyList = info[0];
+        const commentList = info[1].data;
+
         console.log(companyList);
-        // const comments = await service.getComments(postId);
-        // console.log(comments);
+
+        const company = companyList.data.data.list[row];
+        const companyId = row;
+        let title = null;
+        let phone = null;
+        let regDate = null;
+
+        console.log(company);
+        console.log("row :: " + row);
+        let companyDetail = await service.getCompanyInfo(company.id);
+        companyDetail = companyDetail.data.data;
+        if(companyDetail) {
+            title = companyDetail.name;
+            phone = formatPhone(companyDetail.phone);
+            regDate = companyDetail.regDate;
+            regDate = regDate.substr(0, regDate.indexOf("."));
+        }
+
+        this.setState({
+            companyId,
+            company: {
+                title,
+                phone,
+                regDate
+            },
+            commentList,
+            fetching: false // done!
+        });
+        console.log(this.state);
+    };
+
+    handleNavigateClick = (type) => {
+        const companyId = this.state.companyId;
+
+        if(type === 'NEXT') {
+            this.fetchCompanyInfo(companyId+1);
+        } else {
+            this.fetchCompanyInfo(companyId-1);
+        }
     };
 
     render() {
+        const {companyId, fetching, company, commentList} = this.state;
+
         return (
             <PostWrapper>
-                <Navigate/>
-                <Post/>
+                <Navigate
+                    companyId={companyId}
+                    disabled={fetching}
+                    onClick={this.handleNavigateClick}
+                />
+                <Post
+                    title={company.title}
+                    phone={company.phone}
+                    regDate={company.regDate}
+                    commentList={commentList}
+                />
             </PostWrapper>
         );
     }
