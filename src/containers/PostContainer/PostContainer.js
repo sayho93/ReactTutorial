@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { PostWrapper, Navigate, Post } from '../../components';
+import { PostWrapper, Navigate, Post, Warning } from '../../components';
 import * as service from '../../services/company';
 // import * as phoneUtil from '../../utils/formatPhone';
 import { formatPhone } from '../../utils/formatPhone';
@@ -16,7 +16,11 @@ class PostContainer extends Component {
                 phone: null,
                 regDate : null
             },
-            commentList : []
+            commentList : [],
+            warning: {
+                warningVisibility : false,
+                message: ""
+            }
         };
     }
 
@@ -24,48 +28,75 @@ class PostContainer extends Component {
         this.fetchCompanyInfo(0);
     }
 
+    showWarning = ({message}) => {
+        this.setState({
+            warningVisibility: true,
+            message: "해당 회사가 존재하지 않습니다"
+        });
+
+        // after 1.5 sec
+
+        setTimeout(
+            () => {
+                this.setState({
+                    warningVisibility: false
+                });
+            }, 1500
+        );
+    }
+
     fetchCompanyInfo = async (row) => {
         this.setState({
             fetching: true // requesting..
         });
 
-        const info = await Promise.all([
-            service.getCompanyList(),
-            service.getComments(1)
-        ]);
-        const companyList = info[0];
-        const commentList = info[1].data;
+        try{
+            const info = await Promise.all([
+                service.getCompanyList(),
+                service.getComments(1)
+            ]);
+            const companyList = info[0];
+            const commentList = info[1].data;
 
-        console.log(companyList);
+            console.log(companyList);
 
-        const company = companyList.data.data.list[row];
-        const companyId = row;
-        let title = null;
-        let phone = null;
-        let regDate = null;
+            const company = companyList.data.data.list[row];
+            const companyId = row;
+            let title = null;
+            let phone = null;
+            let regDate = null;
 
-        console.log(company);
-        console.log("row :: " + row);
-        let companyDetail = await service.getCompanyInfo(company.id);
-        companyDetail = companyDetail.data.data;
-        if(companyDetail) {
-            title = companyDetail.name;
-            phone = formatPhone(companyDetail.phone);
-            regDate = companyDetail.regDate;
-            regDate = regDate.substr(0, regDate.indexOf("."));
+            console.log(company);
+            console.log("row :: " + row);
+            let companyDetail = await service.getCompanyInfo(company.id);
+            companyDetail = companyDetail.data.data;
+            if(companyDetail) {
+                title = companyDetail.name;
+                phone = formatPhone(companyDetail.phone);
+                regDate = companyDetail.regDate;
+                regDate = regDate.substr(0, regDate.indexOf("."));
+            }
+
+            this.setState({
+                companyId,
+                company: {
+                    title,
+                    phone,
+                    regDate
+                },
+                commentList,
+                fetching: false // done!
+            });
+            console.log(this.state);
         }
+        catch(e){
+            this.setState({
+                fetching: false
+            });
+            console.log('error occurred', e);
 
-        this.setState({
-            companyId,
-            company: {
-                title,
-                phone,
-                regDate
-            },
-            commentList,
-            fetching: false // done!
-        });
-        console.log(this.state);
+            this.showWarning;
+        }
     };
 
     handleNavigateClick = (type) => {
@@ -79,7 +110,7 @@ class PostContainer extends Component {
     };
 
     render() {
-        const {companyId, fetching, company, commentList} = this.state;
+        const {companyId, fetching, company, commentList, warning} = this.state;
 
         return (
             <PostWrapper>
@@ -94,6 +125,7 @@ class PostContainer extends Component {
                     regDate={company.regDate}
                     commentList={commentList}
                 />
+                <Warning visible={warning.warningVisibility} message={warning.message}/>
             </PostWrapper>
         );
     }
