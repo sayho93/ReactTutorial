@@ -31,6 +31,7 @@ class Warning extends Component {
         const { visible, message } = this.props;
         const { closing } = this.state;
 
+        console.log(visible + "::" + message);
         if(!visible && !closing) return null;
         return (
             <div className="Warning-wrapper">

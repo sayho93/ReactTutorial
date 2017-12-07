@@ -28,22 +28,27 @@ class PostContainer extends Component {
         this.fetchCompanyInfo(0);
     }
 
-    showWarning = ({message}) => {
+    //TODO message undefined
+    showWarning = (message) => {
+        console.log("showWarning message :::: " + message);
         this.setState({
-            warningVisibility: true,
-            message: "해당 회사가 존재하지 않습니다"
+            warning: {
+                warningVisibility: true,
+                message: message
+            }
         });
-
         // after 1.5 sec
-
         setTimeout(
             () => {
                 this.setState({
-                    warningVisibility: false
+                    warning: {
+                        warningVisibility: false,
+                        message: message
+                    }
                 });
-            }, 1500
+            }, 1000
         );
-    }
+    };
 
     fetchCompanyInfo = async (row) => {
         this.setState({
@@ -62,20 +67,16 @@ class PostContainer extends Component {
 
             const company = companyList.data.data.list[row];
             const companyId = row;
-            let title = null;
-            let phone = null;
-            let regDate = null;
 
             console.log(company);
             console.log("row :: " + row);
-            let companyDetail = await service.getCompanyInfo(company.id);
-            companyDetail = companyDetail.data.data;
-            if(companyDetail) {
-                title = companyDetail.name;
-                phone = formatPhone(companyDetail.phone);
-                regDate = companyDetail.regDate;
-                regDate = regDate.substr(0, regDate.indexOf("."));
-            }
+
+            let companyDetail = company;
+
+            const title = companyDetail.name;
+            const phone = formatPhone(companyDetail.phone);
+            let regDate = companyDetail.regDate;
+            regDate = regDate.substr(0, regDate.indexOf("."));
 
             this.setState({
                 companyId,
@@ -95,7 +96,7 @@ class PostContainer extends Component {
             });
             console.log('error occurred', e);
 
-            this.showWarning;
+            this.showWarning("게시물의 끝입니다.");
         }
     };
 
