@@ -60,14 +60,16 @@ class PostContainer extends Component {
                 service.getCompanyList(),
                 service.getComments(1)
             ]);
+
             const companyList = info[0];
             const commentList = info[1].data;
-
             console.log(companyList);
 
             const company = companyList.data.data.list[row];
             const companyId = row;
 
+            if(!company)
+                throw -100;
             console.log(company);
             console.log("row :: " + row);
 
@@ -90,13 +92,16 @@ class PostContainer extends Component {
             });
             console.log(this.state);
         }
-        catch(e){
+        catch(exception){
             this.setState({
                 fetching: false
             });
-            console.log('error occurred', e);
+            console.log(exception);
 
-            this.showWarning("게시물의 끝입니다.");
+            if(exception === -100)
+                this.showWarning("게시물의 끝입니다.");
+            else
+                this.showWarning("접속이 원활하지 않습니다.");
         }
     };
 
