@@ -15,7 +15,7 @@ const Navigate = ({onClick, companyId, disabled}) => (
             disabled={disabled}
         />
         <div className="Navigate-page-num">
-            {companyId}
+            {companyId + 1}
         </div>
         <Button
             color="teal"

@@ -37,7 +37,6 @@ class PostContainer extends Component {
                 message: message
             }
         });
-        // after 1.5 sec
         setTimeout(
             () => {
                 this.setState({
@@ -46,7 +45,7 @@ class PostContainer extends Component {
                         message: message
                     }
                 });
-            }, 1000
+            }, 100
         );
     };
 
@@ -126,6 +125,7 @@ class PostContainer extends Component {
                     onClick={this.handleNavigateClick}
                 />
                 <Post
+                    companyId={companyId}
                     title={company.title}
                     phone={company.phone}
                     regDate={company.regDate}
